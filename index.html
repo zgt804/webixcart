@@ -1,0 +1,148 @@
+<html>
+<head>
+    <title>Cart</title>
+    <link rel="stylesheet" type="text/css" href="./codebase/webix.css">
+    <script type="text/javascript" src="./codebase/webix.js"></script>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+<body>
+    <script>
+        let carts = [];
+        let items = [
+            {
+                id: 1,
+                name : 'Товар 1',
+                amount : 5,
+                price : 560
+            },
+            {
+                id: 2,
+                name : 'Товар 2',
+                amount : 8,
+                price : 320
+            },
+            {
+                id: 3,
+                name : 'Товар 3',
+                amount : 3,
+                price : 200
+            },
+            {
+                id: 4,
+                name : 'Товар 4',
+                amount : 1,
+                price : 1000
+            },
+            {
+                id: 5,
+                name : 'Товар 5',
+                amount : 15,
+                price : 100
+            },
+            {
+                id: 6,
+                name : 'Товар 6',
+                amount : 6,
+                price : 250
+            },
+        ];
+
+        webix.ui({
+            rows: [
+                {cols: [
+                    {rows: [
+                        {template: '<div class="cntr">Склад</div>', height: 25},
+                        {scroll: false,
+                        view: "list",
+                        id: "items",
+                        autoheight: true,
+                        template: '<div class="item"><div class="widther">#name#</div><div class="widther">#amount# шт</div><div class="widther">#price# руб</div></div>',
+                        data: items}
+                    ]},
+                    {rows: [
+                        {template: '<div class="cntr">Корзина</div>', height: 25},
+                        {scroll: false,
+                        view: "list",
+                        id: "cart",
+                        autoheight: true,
+                        template: '<div class="cart_item"><div class="widther">#name#</div><div class="widther">#amount# шт</div><div class="widther">#price# руб</div></div>',
+                        data: carts}
+                    ]}
+                ]},
+                {cols: [
+                    {},
+                    {scroll: false,
+                    id: "sum",
+                    view: "text",
+                    height: 50,
+                    value: 'Итого: 0 руб'}
+                ]}
+            ]
+        });
+
+        
+        let cartList = $$('cart');
+        let itemsList = $$('items');
+        let sum = $$('sum');
+
+
+        function renderList (summ) {
+            cartList.clearAll();
+            cartList.parse(carts,'json');
+            cartList.refresh();
+            itemsList.clearAll();
+            itemsList.parse(items,'json');
+            itemsList.refresh();
+            sum.setValue("Итого: " + summ + " руб");
+            sum.refresh();
+        }
+
+
+        itemsList.attachEvent("onItemClick", function(id) {
+            let summ = 0;
+            let itemc = this.getItem(id);
+            if(itemc.amount != 0) {
+                itemc.amount = itemc.amount - 1;
+                if(carts.length != 0) {
+                    let findThem = carts.find(item => item.name == itemc.name);
+                    if(findThem) {
+                        findThem.amount = findThem.amount + 1;
+                    } else {
+                        carts[carts.length] = Object.assign({}, itemc);
+                        carts[carts.length-1].amount = 1;
+                    }
+                } else {
+                    carts[0] = Object.assign({}, itemc);
+                    carts[0].amount = 1;
+                }
+            }
+
+            for(let i = 0; i < carts.length; i++) {
+                summ += carts[i].amount * carts[i].price;
+            }
+
+            renderList(summ);
+        });
+
+
+        cartList.attachEvent("onItemClick", function(id) {
+            let summ = 0;
+            let cart = this.getItem(id);
+            cart.amount = cart.amount - 1;
+            let j = 0;
+            let findThem = items.find(item => item.name == cart.name);
+            findThem.amount = findThem.amount + 1;
+            if(cart.amount == 0) {
+                let i = carts.indexOf(cart, 0);
+                carts.splice(i,1);
+            }
+
+            for(let i = 0; i < carts.length; i++) {
+                summ += carts[i].amount * carts[i].price;
+            }
+
+            renderList(summ);
+        });
+    </script>
+</body>
+</html>
